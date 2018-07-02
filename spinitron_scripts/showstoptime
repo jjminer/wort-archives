@@ -1,0 +1,3 @@
+#/bin/bash
+
+echo $(/var/www/wordpress/wp-content/plugins/WPSpin-master/spinpapi/spquery getRegularShowsInfo When now | grep -m 1 'OffairTime' | awk 'BEGIN { FS = " => " } ; {print $2}' | date -f - +'%H:%M')

@@ -1,0 +1,50 @@
+#/bin/bashi
+
+# Seed padding value as 0, cheaper than testing for passed arg
+PADDINGSECS="0"
+
+# -r flag will return time remaining in current show
+while getopts ":p:r" opt; do
+	case $opt in
+		r)
+			STARTTIME=$(date +%H%M)
+			;;
+		p)
+			PADDINGSECS=$OPTARG
+			;;	
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			;;
+	esac
+done
+
+# Path to Spinitron API spquery command
+SPINQUERY="/var/www/wordpress/wp-content/plugins/WPSpin-master/spinpapi/spquery"
+
+# Fetch show on air and off air times from Spinitron API
+SHOWTIMES=$(${SPINQUERY} getRegularShowsInfo When now | grep -E 'OnairTime|OffairTime' | awk 'BEGIN { FS = " => "} ; {gsub(/\n/,"",$4); print $2"-"$4}')
+
+# Split returned variables using field separator hack so we don't have to query twice
+OLDIFS=$IFS
+IFS=-
+set $SHOWTIMES
+IFS=$OLDIFS
+
+# Populate start and stop times and convert to seconds; 
+# start time is NOW if we're calculating remaining, 
+# otherwise it's start time provided by Spinitron
+if [ -z ${STARTTIME} ]; then STARTTIME=$1; else STARTTIME=$STARTTIME; fi
+STOPTIME=$2
+STARTSECS=$(date -d$STARTTIME +%s)
+STOPSECS=$(date -d$STOPTIME +%s)
+
+# If off air time is before on air time, we've crossed midnight, 
+# fix it by adding 24 hours in seconds:
+if [ "$STOPSECS" -lt "$STARTSECS" ] 
+then
+	STOPSECS=$(($STOPSECS + 86400))
+fi
+
+# Calculate runtime
+RUNSECS=$(($STOPSECS - $STARTSECS + $PADDINGSECS))
+echo "$RUNSECS"
