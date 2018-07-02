@@ -34,10 +34,12 @@ Example file names (All Around Jazz, 7/2/2018):
 -rw-rw-r-- 1 www-data www-data 36002330 Jul  2 17:00 2018-07-02 1645 - 1700 - All Around Jazz - 111-1 - wort_180702_164502aaj.mp3
 ```
 
-`/mnt/aircheck/Complete Shows`
-```-rw-rw-r-- 1 www-data www-data 436801828 Jul  2 17:02 FULL - 2018-07-02 1400 - 1702 - All Around Jazz - 111-1 - wort_180702_140002aaj.mp3
+`/mnt/aircheck/Complete Shows`:
+```
+-rw-rw-r-- 1 www-data www-data 436801828 Jul  2 17:02 FULL - 2018-07-02 1400 - 1702 - All Around Jazz - 111-1 - wort_180702_140002aaj.mp3
 ```
 
-`/mnt/aircheck/Old Archive Format`
-```-rw-rw-r-- 1 www-data www-data 262081097 Jul  2 17:09 wort_180702_140002aaj.mp3
+`/mnt/aircheck/Old Archive Format`:
+```
+-rw-rw-r-- 1 www-data www-data 262081097 Jul  2 17:09 wort_180702_140002aaj.mp3
 ```
