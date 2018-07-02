@@ -1,0 +1,5 @@
+# m h  dom mon dow   command
+
+0,15,30,45 * * * * /var/www/scripts/archive_record
+0,15,30,45 * * * * /var/www/scripts/bootstrap_autoarchive
+1,16,31,46 * * * * /var/www/scripts/archive_rsync

@@ -1,0 +1,7 @@
+#!/bin/bash
+if [[ $(ps ax | grep "[s]ox" | grep "[F]ULL" ) > 0 ]]
+then 
+	echo "Autoarchiver is running at PID $(ps ax | grep "[s]ox" | grep "[F]ULL" | cut -d " " -f 1)"
+	exit 0
+else 
+	/var/www/scripts/autoarchive

@@ -1,0 +1,70 @@
+#/bin/bash
+#
+# Set paths and stuff
+#
+ARCHIVE_SCRIPT="/var/www/scripts/autoarchive"
+SPINITRON_SCRIPT_DIR="/var/www/scripts/spinitron-scripts"
+SPQUERY="/var/www/wordpress/wp-content/plugins/WPSpin-master/spinpapi/spquery"
+RECORDING_DIR="/mnt/aircheck/Complete Shows"
+REMOTESTREAM="http://stream.wortfm.org:8000/ultra.mp3.m3u"
+STREAM="http://localhost:8000/320k.mp3.m3u"
+SHOWDB="/var/www/scripts/showdb.txt"
+TRANSFER_DIR="/mnt/aircheck/Old Archive Format"
+PADDING="120" # End padding in seconds
+PUBLIC_BITRATE="192" # Bitrate for files for public archive
+#
+### We need to cache this Spinitron stuff for production version... 
+#
+# Get show ID from Spinitron to name file
+ShowID=$($SPINITRON_SCRIPT_DIR/showid)
+
+# Get show name from Spinitron to name file
+ShowName=$($SPINITRON_SCRIPT_DIR/showname)
+
+# Get show stop time  from Spinitron to pass to at
+ShowStopTime=$($SPINITRON_SCRIPT_DIR/showstoptime)
+
+# Get show runtime in seconds from Spinitron to pass to sox, 
+# use -r (remaining) in case it's invoked late, and add
+# padding with -p SECS
+ShowRunTime=$($SPINITRON_SCRIPT_DIR/showruntime -r -p $PADDING)
+
+# Look up old archive show name from database
+DOW=$(date +%w)
+ShowCode="$ShowID-$DOW"
+
+# Build old filename format
+OldShowName=$(awk "/^$ShowCode/ {print \$2}" $SHOWDB)
+OldDate=$(date +"wort_%y%m%d_%H%M%S")
+OldFilename=$(echo "$OldDate$OldShowName")
+
+# Build record filename
+Filename="FULL - $(date +"%F %H%M") - $(date +"%H%M" -d "+$ShowRunTime seconds") - $ShowName - $ShowCode - $OldFilename.mp3"
+
+# Test to see if there's already a recording running - if so, quit. 
+if [ -e "$RECORDING_DIR/$Filename" ]
+then
+	exit 1
+fi
+
+# Schedule next recording - requires at 
+at -f $ARCHIVE_SCRIPT $ShowStopTime
+
+# Start recording current show from stream 
+sox "$STREAM" -C 320 "$RECORDING_DIR/$Filename" trim 0 $ShowRunTime
+
+# Convert to public bitrate and drop into the old archive transfer directory
+sox "$RECORDING_DIR/$Filename" -C $PUBLIC_BITRATE "$TRANSFER_DIR/$OldFilename.mp3"
+
+#
+# Transfer to public server
+#
+
+# Remote SSH account
+SSH_ACCOUNT="infotech@stream.wortfm.org"
+
+# Remote directory
+REMOTE_DIRECTORY="/home/sites/archive/mp3/"
+
+# Rsync to public archive server
+rsync -avz -e "ssh -p 22666" "$TRANSFER_DIR/$OldFilename.mp3" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"

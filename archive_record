@@ -1,0 +1,35 @@
+#/bin/bash
+
+SPINITRON_SCRIPT_DIR="/var/www/scripts/spinitron-scripts"
+SHOWDB="/var/www/scripts/showdb.txt"
+REMOTESTREAM="http://stream.wortfm.org:8000/ultra.mp3.m3u"
+STREAM="http://localhost:8000/320k.mp3.m3u"
+METADATA="Title=$ShowName on WORT-FM - $(date +%F)"
+RECORDING_DIR="/mnt/aircheck/15 Minute Slices"
+
+# Get show ID and name from Spinitron
+ShowName=$($SPINITRON_SCRIPT_DIR/showname)
+ShowID=$($SPINITRON_SCRIPT_DIR/showid)
+
+# Look up old archive show name from database
+DOW=$(date +%w)
+
+# Show Code is Spinitron ID plus Linux day of week 
+# (because we don't have shows properly differentiated in Spinitron)
+ShowCode="$ShowID-$DOW"
+
+# Build old filename format
+OldShowName=$(awk "/$ShowCode/ {print \$2}" $SHOWDB)
+OldDate=$(date +"wort_%y%m%d_%H%M%S")
+OldFilename=$(echo "$OldDate$OldShowName")
+
+echo "ShowName: $ShowName"
+echo "ShowID: $ShowID"
+echo "ShowCode: $ShowCode"
+echo "OldShowName: $OldShowName"
+echo "OldDate: $OldDate"
+echo "OldFilename: $OldFilename"
+
+Filename="$(date +"%F %H%M") - $(date +"%H%M" -d "+15 min") - $ShowName - $ShowCode - $OldFilename.mp3"
+
+sox "$STREAM" -C 320 --comment "$METADATA" "$RECORDING_DIR/$Filename" trim 0 15:00

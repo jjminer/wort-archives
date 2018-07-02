@@ -1,0 +1,38 @@
+#!/bin/bash
+# Transfer archive recordings to local archive server
+
+if (( $(pgrep archive_rsync | wc -l)  > 2 ))
+then
+	echo $( pgrep archive_rsync | wc -l )
+	echo "Rsync already running, exiting."
+	exit 
+fi 
+echo "Rsync not running, proceeding..."
+
+LOCAL_DIR="/mnt/aircheck/"
+REMOTE_DIR="/mnt/archive-local/mp3/aircheck/"
+
+TRANSFER_DIR="/mnt/aircheck/Old Archive Format/"
+REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
+
+echo "Syncing LAN files..."
+echo "Syncing slices and complete shows..."
+rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" "$LOCAL_DIR" "$REMOTE_DIR" 
+
+echo "Syncing downsampled Otie format files..."
+rsync -vr --update "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
+
+# Remote SSH account
+SSH_ACCOUNT="infotech@stream.wortfm.org"
+
+# Remote directory
+REMOTE_DIRECTORY="/home/sites/archive/mp3/"
+
+echo "Syncing to web archive..."
+# Rsync to public archive server
+
+find "/mnt/aircheck/Old Archive Format/" -mtime -21 -type f -printf '%f\n' > /var/tmp/filelist
+
+rsync -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
+
+#rsync --dry-run -s -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY" 
