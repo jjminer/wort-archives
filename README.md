@@ -43,3 +43,8 @@ Example file names (All Around Jazz, 7/2/2018):
 ```
 -rw-rw-r-- 1 www-data www-data 262081097 Jul  2 17:09 wort_180702_140002aaj.mp3
 ```
+
+Mount Points:
+```//archive-local.local/archive on /mnt/archive-local type cifs (rw,relatime,vers=1.0,sec=ntlm,cache=strict,username=admin,uid=0,noforceuid,gid=0,noforcegid,addr=192.168.1.25,unix,posixpaths,serverino,mapposix,acl,rsize=1048576,wsize=1048576,actimeo=1,_netdev)
+/dev/sdb1 on /mnt/aircheck type ext4 (rw,relatime,errors=remount-ro,data=ordered)
+```
