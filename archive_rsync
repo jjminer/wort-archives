@@ -17,7 +17,7 @@ REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
 
 echo "Syncing LAN files..."
 echo "Syncing slices and complete shows..."
-rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" "$LOCAL_DIR" "$REMOTE_DIR" 
+rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR" 
 
 echo "Syncing downsampled Otie format files..."
 rsync -vr --update "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
