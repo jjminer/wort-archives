@@ -1,7 +1,19 @@
 #!/bin/bash
-if [[ $(ps ax | grep "[s]ox" | grep "[F]ULL" ) > 0 ]]
+
+sleep 5
+
+DOW=$(date +%w)
+NOW=$(date +%H:%M:%S)
+
+string=$(/var/www/scripts/spinitron-scripts/schedmap.pl $NOW $DOW)
+showname=$(echo $string | cut -d',' -f1)
+echo $showname
+
+if [[ $(ps ax | grep "[s]ox" | grep "[F]ULL" | grep "$showname") > 0 ]]
 then 
-	echo "Autoarchiver is running at PID $(ps ax | grep "[s]ox" | grep "[F]ULL" | cut -d " " -f 1)"
+	echo "Autoarchiver is running at PID $(ps ax | grep "[s]ox" | grep "[F]ULL" | grep "$showname" | cut -d " " -f 1)"
 	exit 0
 else 
 	/var/www/scripts/autoarchive
+#	echo '/var/www/scripts/autoarchive'
+fi
