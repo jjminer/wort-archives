@@ -24,10 +24,14 @@ echo "Syncing LAN files..."
 echo "Syncing complete shows..."
 # I am not fixing that this irrationally copies the complete shows inside a directory full of
 # lower-quality shows (in the line following)
-rsync -vr --update $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR"
+# Sync only files from the last day
+find "$LOCAL_DIR" -mtime -1 -type f -printf '%f\n' > /var/tmp/filelist
+rsync -vr --update --files-from=/var/tmp/filelist "$LOCAL_DIR" "$REMOTE_DIR"
 
 echo "Syncing downsampled Otie format files..."
-rsync -vr --update "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
+# Sync only files from the last day
+find "$TRANSFER_DIR" -mtime -1 -type f -printf '%f\n' > /var/tmp/filelist
+rsync -vr --update --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
 
 # Remote SSH account
 SSH_ACCOUNT="infotech@stream.wortfm.org"
@@ -38,7 +42,7 @@ REMOTE_DIRECTORY="/home/sites/archive/mp3/"
 echo "Syncing to web archive..."
 # Rsync to public archive server
 
-find "/mnt/aircheck/Old Archive Format/" -mtime -21 -type f -printf '%f\n' > /var/tmp/filelist
+find "$TRANSFER_DIR" -mtime -21 -type f -printf '%f\n' > /var/tmp/filelist
 
 rsync -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
 
