@@ -9,15 +9,22 @@ then
 fi 
 echo "Rsync not running, proceeding..."
 
-LOCAL_DIR="/mnt/aircheck/"
+LOCAL_DIR="/mnt/aircheck/Complete Shows/"
 REMOTE_DIR="/mnt/archive-local/mp3/aircheck/"
 
 TRANSFER_DIR="/mnt/aircheck/Old Archive Format/"
 REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
 
 echo "Syncing LAN files..."
-echo "Syncing slices and complete shows..."
-rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR" 
+# This isn't, and never was, as far as I can tell, syncing slices.  And it wasn't syncing complete shows either.
+# echo "Syncing slices and complete shows..."
+# rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR" 
+
+# This will actually sync the complete shows
+echo "Syncing complete shows..."
+# I am not fixing that this irrationally copies the complete shows inside a directory full of
+# lower-quality shows (in the line following)
+rsync -vr --update $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR"
 
 echo "Syncing downsampled Otie format files..."
 rsync -vr --update "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
