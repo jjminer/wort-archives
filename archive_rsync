@@ -10,7 +10,7 @@ fi
 echo "Rsync not running, proceeding..."
 
 LOCAL_DIR="/mnt/aircheck/Complete Shows/"
-REMOTE_DIR="/mnt/archive-local/mp3/aircheck/"
+REMOTE_DIR="/mnt/archive-local/mp3/aircheck/Complete Shows/"
 
 TRANSFER_DIR="/mnt/aircheck/Old Archive Format/"
 REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
@@ -42,4 +42,4 @@ find "/mnt/aircheck/Old Archive Format/" -mtime -21 -type f -printf '%f\n' > /va
 
 rsync -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
 
-#rsync --dry-run -s -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY" 
+#rsync --dry-run -s -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
