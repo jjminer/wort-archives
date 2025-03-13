@@ -5,7 +5,7 @@ sleep 5
 DOW=$(date +%w)
 NOW=$(date +%H:%M:%S)
 
-string=$(/var/www/scripts/spinitron-scripts/schedmap.pl $NOW $DOW)
+string=$(/var/www/scripts/schedmap.pl $NOW $DOW)
 showname=$(echo $string | cut -d',' -f1)
 echo $showname
 

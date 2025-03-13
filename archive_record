@@ -1,17 +1,21 @@
 #!/bin/bash
-
-SPINITRON_SCRIPT_DIR="/var/www/scripts/spinitron-scripts"
-#SHOWDB="/var/www/scripts/showdb.txt"
-#REMOTESTREAM="http://stream.wortfm.org:8000/ultra.mp3.m3u"
+#
+# Hacked 09Sept2024 to remove all traces of Spinitron finally.
+# And to get this installed on the new server
+# tjones
+#
+# Set environment variables:
+SCRIPT_DIR="/var/www/scripts"
 STREAM="http://localhost:8000/320k.mp3.m3u"
-RECORDING_DIR="/mnt/aircheck/15 Minute Slices"
-TRANSFER_DIR="/mnt/mass-storage"
+# RECORDING_DIR="/data/aircheck/15 Minute Slices"
+RECORDING_DIR="//mnt/archive-local/aircheck/15 Minute Slices"
+TRANSFER_DIR="/mnt/mstorage"
 
 # Get show ID and name from Spinitron
 # Look up old archive show name from database
 DATE=$(date +%H:%M:%S)
 DOW=$(date +%w)
-string=$($SPINITRON_SCRIPT_DIR/schedmap.pl $DATE $DOW)
+string=$($SCRIPT_DIR/schedmap.pl $DATE $DOW)
 #echo $string
 IFS=$',\n' read -r -a array <<< $string 
 
@@ -27,7 +31,6 @@ echo $METADATA
 ShowCode="$ShowID-$DOW"
 
 # Build old filename format
-#OldShowName=$(awk "/$ShowCode/ {print \$2}" $SHOWDB)
 OldDate=$(date +"wort_%y%m%d_%H%M%S")
 OldFilename=$(echo "$OldDate$OldShowName")
 
@@ -44,3 +47,4 @@ echo $Filename
 
 /usr/bin/sox "$STREAM" -C 320 --comment "$METADATA" "$RECORDING_DIR/$Filename" trim 0 15:00
 #rsync -avz "$RECORDING_DIR/$Filename" "$TRANSFER_DIR"
+

@@ -1,25 +1,27 @@
 #!/bin/bash
+# 
+# Hacked 09Sept2024 to remove all traces of Spinitron finally.
+# And to get this installed on the new server
+# tjones
 #
 # Set paths and stuff
 #
 ARCHIVE_SCRIPT="/var/www/scripts/autoarchive"
-SPINITRON_SCRIPT_DIR="/var/www/scripts/spinitron-scripts"
-#SPQUERY="/var/www/wordpress/wp-content/plugins/WPSpin-master/spinpapi/spquery"
-RECORDING_DIR="/mnt/aircheck/Complete Shows"
+SCRIPT_DIR="/var/www/scripts"
+RECORDING_DIR="/data/aircheck/Complete Shows"
 REMOTESTREAM="http://stream.wortfm.org:8000/ultra.mp3.m3u"
 STREAM="http://localhost:8000/320k.mp3.m3u"
 SHOWDB="/var/www/scripts/showdb.txt"
-TRANSFER_DIR="/mnt/aircheck/Old Archive Format"
+TRANSFER_DIR="/data/aircheck/Old Archive Format"
 PADDING="120" # End padding in seconds
 PUBLIC_BITRATE="192" # Bitrate for files for public archive
 #
 ### We need to cache this Spinitron stuff for production version... 
 
-# Get show ID and name from Spinitron
 # Look up old archive show name from database
 DATE=$(date +%H:%M:%S)
 DOW=$(date +%w)
-string=$($SPINITRON_SCRIPT_DIR/schedmap.pl $DATE $DOW)
+string=$($SCRIPT_DIR/schedmap.pl $DATE $DOW)
 IFS=$',\n'
 read -r -a array  <<< "$string"
 
@@ -30,22 +32,7 @@ ShowStartTime=${array[3]}
 ShowStopTime=${array[4]}
 
 #
-# Get show ID from Spinitron to name file
-#ShowID=$($SPINITRON_SCRIPT_DIR/showid)
-
-# Get show name from Spinitron to name file
-#ShowName=$($SPINITRON_SCRIPT_DIR/showname)
-
-# Get show stop time  from Spinitron to pass to at
-#ShowStopTime=$($SPINITRON_SCRIPT_DIR/showstoptime)
-
-# Get show runtime in seconds from Spinitron to pass to sox, 
-# use -r (remaining) in case it's invoked late, and add
-# padding with -p SECS
-#ShowRunTime=$($SPINITRON_SCRIPT_DIR/showruntime -r -p $PADDING)
 # Populate start and stop times and convert to seconds;
-# start time is NOW if we're calculating remaining,
-# otherwise it's start time provided by Spinitron
 
 STARTTIME=$(date +%H:%M:%S)
 STOPTIME=$ShowStopTime
@@ -87,17 +74,14 @@ attime=$(date +%H:%M:00 -d $ShowStopTime)
 # Schedule next recording - requires at 
 if [ ! $(atq | grep $attime) ]
 then
-#echo "at -f $ARCHIVE_SCRIPT $(date +%H:%M -d $ShowStopTime)"
   at -f $ARCHIVE_SCRIPT $attime
 fi
 
 # Start recording current show from stream 
 sox "$STREAM" -C 320 "$RECORDING_DIR/$Filename" trim 0 $ShowRunTime
-#echo "sox $STREAM -C 320 $RECORDING_DIR/$Filename trim 0 $ShowRunTime"
 
 # Convert to public bitrate and drop into the old archive transfer directory
 sox "$RECORDING_DIR/$Filename" -C $PUBLIC_BITRATE "$TRANSFER_DIR/$OldFilename.mp3"
-#echo "sox $RECORDING_DIR/$Filename -C $PUBLIC_BITRATE $TRANSFER_DIR/$OldFilename.mp3"
 
 #
 # Transfer to public server
@@ -106,9 +90,7 @@ sox "$RECORDING_DIR/$Filename" -C $PUBLIC_BITRATE "$TRANSFER_DIR/$OldFilename.mp
 # Remote SSH account
 SSH_ACCOUNT="infotech@stream.wortfm.org"
 
-# Remote directory
-REMOTE_DIRECTORY="/home/sites/archive/mp3/"
-
-# Rsync to public archive server
-rsync -avz -e "ssh -p 22666" "$TRANSFER_DIR/$OldFilename.mp3" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
-#echo "rsync -avz -e ssh -p 22666 $TRANSFER_DIR/$OldFilename.mp3 $SSH_ACCOUNT:$REMOTE_DIRECTORY"
+#rsync to archive server:
+archiveAccount="infotech@wortcast01.wortfm.org"
+archiveDir="/var/www/html/mp3/"
+# rsync -avz -e "ssh -i /home/infotech/.ssh/id_rsa" "$TRANSFER_DIR/$OldFilename.mp3" "$archiveAccount:$archiveDir"

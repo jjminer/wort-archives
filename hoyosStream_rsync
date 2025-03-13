@@ -1,0 +1,45 @@
+#!/bin/bash
+# Transfer archive recordings to new archive server
+# Hacked together from other scripts on here - will probably be production script soon
+# 01Dec2020 - tjones
+#
+ts=$(date +"%F %T")
+LOCAL_DIR="/data/aircheck/Complete Shows/"
+REMOTE_DIR="/mnt/archive-local/mp3/aircheck/Complete Shows/"
+TRANSFER_DIR="/data/aircheck/Old Archive Format/"
+REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
+logfile="/tmp/hoyosStream_rsync.log"
+machine=`hostname`
+mailstop="infotech@wortfm.org"
+
+echo "rsync to stream.wortfm.org on $ts" > $logfile
+echo "" >> $logfile
+
+if (( $(pgrep wortcast01_rsync | wc -l)  > 2 ))
+then
+        echo $( pgrep hoyosStream_rsync | wc -l ) >> $logfile
+        echo "Rsync already running, exiting." >> $logfile
+        mail -s "$machine - rsync to Hoyos stream.wortfm.org already running - problem?" $mailstop < $logfile
+        exit
+fi
+echo "Rsync not running, proceeding..." >> $logfile
+
+# Remote SSH account
+SSH_ACCOUNT="wortadmin@141.193.126.221"
+
+# Remote directory
+REMOTE_DIRECTORY="/var/www/html/mp3/"
+
+echo "Syncing to web archive on Hoyos Stream..."
+# Rsync to public archive server
+
+find "$TRANSFER_DIR" -mtime -21 -type f -printf '%f\n' > /var/tmp/wortcast01_filelist
+
+# rsync -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
+
+# rsync -r --update --exclude="*synd*" -e "ssh " --files-from=/var/tmp/wortcast01_filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY" >>$logfile
+rsync -rvzsu --exclude="index.html" --exclude="*synd*" --files-from=/var/tmp/wortcast01_filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY" >>$logfile
+#
+# turned the following off - too much mail.  Use for debugging only.
+# mail -s "$machine - rsync to remote archive server (Hoyos Stream complete" $mailstop < $logfile
+

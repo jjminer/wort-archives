@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Moving to new intranet server
+# 09Sept2024.   tjones
+#
 # Transfer archive recordings to local archive server
 
 if (( $(pgrep archive_rsync | wc -l)  > 2 ))
@@ -9,21 +13,14 @@ then
 fi 
 echo "Rsync not running, proceeding..."
 
-LOCAL_DIR="/mnt/aircheck/Complete Shows/"
-REMOTE_DIR="/mnt/archive-local/mp3/aircheck/Complete Shows/"
+LOCAL_DIR="/data/aircheck/Complete Shows/"
+REMOTE_DIR="/mnt/archive-local/aircheck/Complete Shows/"
 
-TRANSFER_DIR="/mnt/aircheck/Old Archive Format/"
-REMOTE_PUBLIC_DIR="/mnt/archive-local/mp3/"
-
-echo "Syncing LAN files..."
-# This isn't, and never was, as far as I can tell, syncing slices.  And it wasn't syncing complete shows either.
-# echo "Syncing slices and complete shows..."
-# rsync -vr --update --exclude="Old Archive Format" --exclude="15 Minute Slices" $LOCAL_DIR*$(/bin/date +\%F)* "$REMOTE_DIR" 
+TRANSFER_DIR="/data/aircheck/Old Archive Format/"
+REMOTE_PUBLIC_DIR="/mnt/archive-local/aircheck/192k/"
 
 # This will actually sync the complete shows
 echo "Syncing complete shows..."
-# I am not fixing that this irrationally copies the complete shows inside a directory full of
-# lower-quality shows (in the line following)
 # Sync only files from the last day
 find "$LOCAL_DIR" -mtime -1 -type f -printf '%f\n' > /var/tmp/filelist
 rsync -vr --update --files-from=/var/tmp/filelist "$LOCAL_DIR" "$REMOTE_DIR"
@@ -33,17 +30,3 @@ echo "Syncing downsampled Otie format files..."
 find "$TRANSFER_DIR" -mtime -1 -type f -printf '%f\n' > /var/tmp/filelist
 rsync -vr --update --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$REMOTE_PUBLIC_DIR" 
 
-# Remote SSH account
-SSH_ACCOUNT="infotech@stream.wortfm.org"
-
-# Remote directory
-REMOTE_DIRECTORY="/home/sites/archive/mp3/"
-
-echo "Syncing to web archive..."
-# Rsync to public archive server
-
-find "$TRANSFER_DIR" -mtime -21 -type f -printf '%f\n' > /var/tmp/filelist
-
-rsync -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" --files-from=/var/tmp/filelist "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
-
-#rsync --dry-run -s -vr --progress --update --exclude="*synd*" -e "ssh -p 22666" "$TRANSFER_DIR" "$SSH_ACCOUNT:$REMOTE_DIRECTORY"
